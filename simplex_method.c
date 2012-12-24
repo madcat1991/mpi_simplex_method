@@ -52,7 +52,7 @@ SimplexTable init_random_simplex_table(int n, int m)
 {
     //Генерируем рандомную симплех таблицу с количеством переменных n 
     //и количеством услови m
-    srand(time(0));
+    srand(234);
 
     printf("Initing random simplex method table\n");
 
@@ -63,6 +63,7 @@ SimplexTable init_random_simplex_table(int n, int m)
     //2-ой с конца, для b, 
     //1-ый с конца, для z 
     column_number = n + m;
+    int count = m*n;
     
     double **table;
     table = malloc(sizeof(double *) * row_number);
@@ -71,58 +72,58 @@ SimplexTable init_random_simplex_table(int n, int m)
     b = malloc(sizeof(double) * row_number);   
     z = malloc(sizeof(double) * row_number);
     int i, j;
-    double sum_sqrs;
+    double sum_sqrs = 0;
 
-    //генерация table
+    /* <COPYPASTED> ========================================= */
+    double *random = (double *)malloc(sizeof(double) * count);
+	for (i = 0; i < count; i++)
+	{
+		random[i] = (double)rand() / (GEN_RANGE_MAX + 1) * (GEN_RANGE_MAX - GEN_RANGE_MIN) + GEN_RANGE_MIN;
+		sum_sqrs += random[i] * random[i];
+	}
+
+	double scale = sqrt(sum_sqrs) / 100;
+
+	for (i = 0; i < count; i++)
+	{
+    	    random[i] /= scale;
+	}
+    /* </COPYPASTED> ========================================= */
+
     for(i = 0; i < row_number; i++){
         table[i] = malloc(sizeof(double) * column_number);
+    }
 
-        for(j = 0; j < column_number; j++){
+    // Coefficients of variables in function
+	for (i = 0; i < n; i++)
+	{
+		double coef = (double)rand() / (GEN_RANGE_MAX + 1) * (GEN_RANGE_MAX - GEN_RANGE_MIN) + GEN_RANGE_MIN;
+    	table[0][i] = -coef;
+	}
+
+    //генерация table
+    for (i = 1; i < row_number; i++){
+        double bbb = 0;
+        for (j = 0; j < column_number; j++){
             if(j < n) {
-                //то что относиться к оригинальным переменным - рандом
-                // первая строка инвертирована
-                double rand_value = (double)rand() / (GEN_RANGE_MAX + 1) * (GEN_RANGE_MAX - GEN_RANGE_MIN) + GEN_RANGE_MIN;
-                sum_sqrs += rand_value * rand_value;
-
-                if(i != 0)
-                {
-                    table[i][j] = rand_value; 
-                } else {
-                    table[i][j] = -rand_value;
-                }
+                table[i][j] = random[i - 1 + j];
+                bbb += random[i - 1 + j] * random[i - 1 + j];
             } else {
                 //то что относиться к введенным переменным(базисным)
                 //единички по диагонали, кроме первой строки, в которой оставшиеся
                 //значения - 0
                 if(j - n == i - 1){
-                    table[i][j] = 1.0;
+                    table[i][j] = 1;
                 } else {
-                    table[i][j] = 0.0;
+                    table[i][j] = 0;
                 }
             }
         }
 
-        if(i != 0){
-            double rand_value = (double)rand() / (GEN_RANGE_MAX + 1) * (GEN_RANGE_MAX - GEN_RANGE_MIN) + GEN_RANGE_MIN;
-            sum_sqrs += rand_value * rand_value;
-
-            b[i] = rand_value;
-            z[i] = 0.0;
-        } else {
-            z[i] = 1.0;
-        }
+        b[i] = bbb;
+        z[i] = 0;
     }
-
-    double scale = sqrt(sum_sqrs) / 100.0;
-    for(i = 0; i < row_number; i++){
-        for(j = 0; j < column_number; j++){
-            if(j < n) { 
-                table[i][j] /= scale;
-            }
-        }
-
-        b[i] /= scale;
-    }
+    z[0] = 1;
 
     SimplexTable st = {
         .n = n,
@@ -151,7 +152,7 @@ SimplexTable init_simplex_table(){
 
     printf("Initing simplex method table\n");
     double **table;
-    int n = 2, m = 3; //n - количество переменных, m - количество условий
+    int n = 1000, m = 2000; //n - количество переменных, m - количество условий
 
     int row_number, column_number;
     //+1 под строку с C
@@ -394,7 +395,11 @@ start:
     
     //Здесь код симплекс метода
     if(instance_rank == 0){
-        SimplexTable st = init_random_simplex_table(1000,2000);
+        SimplexTable st = init_random_simplex_table(2, 3);
+
+        print_matrix("table", st.table, st.m + 1, st.m + st.n);
+        print_vector("table z", st.z, st.m + 1);
+        print_vector("table b", st.b, st.m + 1);
 
         int row_length = st.n + st.m;
         //чтобы получилось обработать и нечетно количество условий
@@ -537,7 +542,7 @@ start:
 
 
 //        print_matrix("table", st.table, st.m + 1, st.m + st.n);
-//        print_vector("table z", st.z, st.m + 1);
+        print_vector("table z", st.z, st.m + 1);
 //        print_vector("table b", st.b, st.m + 1);
 
         //чистим данные!!!
