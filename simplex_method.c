@@ -95,9 +95,9 @@ SimplexTable init_random_simplex_table(int n, int m)
                 //единички по диагонали, кроме первой строки, в которой оставшиеся
                 //значения - 0
                 if(j - n == i - 1){
-                    table[i][j] = 1;
+                    table[i][j] = 1.0;
                 } else {
-                    table[i][j] = 0;
+                    table[i][j] = 0.0;
                 }
             }
         }
@@ -107,16 +107,18 @@ SimplexTable init_random_simplex_table(int n, int m)
             sum_sqrs += rand_value * rand_value;
 
             b[i] = rand_value;
-            z[i] = 0;
+            z[i] = 0.0;
         } else {
-            z[i] = 1;
+            z[i] = 1.0;
         }
     }
 
     double scale = sqrt(sum_sqrs) / 100.0;
     for(i = 0; i < row_number; i++){
         for(j = 0; j < column_number; j++){
-            table[i][j] /= scale;
+            if(j < n) { 
+                table[i][j] /= scale;
+            }
         }
 
         b[i] /= scale;
