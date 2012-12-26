@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Job control file
+# |==================================================================================================================|
+# | Full description of options:                                                                                     |
+# | http://publib.boulder.ibm.com/infocenter/clresctr/vxrx/topic/com.ibm.cluster.loadl34.admin.doc/am2ug_jobkey.html |
+# |==================================================================================================================|
+
+# Specifies the name of the job. This keyword must be specified in the first job step.
+# If it is specified in other job steps in the job command file, it is ignored.
+# The job_name only appears in the long reports of the llq, llstatus, and llsummary commands, and in mail related to the job.
+# You can name the job using any combination of letters, numbers, or both
+
+#### Atension IU7 students !!!
+# # job_name = pytest
+
+# Specifies the type of job step to process.
+# Default value: serial
+# @ job_type = MPICH
+# @ class = small
+# @ group = iu7
+# STDIN for job - filename or /dev/null as default value
+# @ input = /dev/null
+
+# STDOUT for job
+# Default value: /dev/null
+
+#### Atension IU7 students !!!
+# @ initialdir = /gpfs/home/iu7/stud088/Simplex
+
+# STDOUT for job
+# @ output = $(initialdir)/out.test.$(user).$(jobid).stdout
+# STDERR for job
+# @ error = $(initialdir)/err.test.$(user).$(jobid).stderr
+
+
+# notification - Specifies when the user specified in the notify_user keyword is sent mail.
+# Syntax: notification = always|error|start|never|complete
+# @ notification = complete
+
+# node - Specifies the minimum and maximum number of nodes requested by a job step.
+# You must specify at least one of these values. The value of the node keyword
+# applies only to the job step in which you specify the keyword. (That is, this
+# keyword is not inherited by other job steps.) When you use the node keyword
+# together with the total_tasks keyword, the min and max values you specify on
+# the node keyword must be equal, or you must specify only one value.
+# Syntax: node = [min][,max]
+
+#### Atension IU7 students !!!
+# @ node = 12
+
+# @ tasks_per_node = 1
+
+# @ environment =  $TVTRACE=$(initialdir)/test.$(user).$(jobid).trace
+
+# node_usage - Specifies whether this job step shares nodes with other job steps.
+# Syntax: node_usage = shared | not_shared
+# @ node_usage = shared
+
+# Places one copy of the job step in the queue.
+# This statement is required.
+# The queue statement essentially marks the end of the job step.
+# Note that you can specify statements between queue statements.
+# @ queue
+
+echo "-------------------------------------------------------"
+echo LOADL_STEP_ID = $LOADL_STEP_ID
+echo HOSTNAME: `hostname`
+echo "-------------------------------------------------------"
+OMP_NUM_THREADS=4
+export OMP_NUM_THREADS
+I_MPI_PIN_DOMAIN=omp
+export I_MPI_PIN_DOMAIN
+#OMP_NESTED=TRUE
+#export OMP_NESTED
+
+mpdboot -r ssh -n `cat $LOADL_HOSTFILE|sort|uniq|wc -l` -f $LOADL_HOSTFILE
+
+#### Atension IU7 students !!!
+mpirun -r ssh -machinefile $LOADL_HOSTFILE -n $LOADL_TOTAL_TASKS  ./simplex /gpfs/home/iu7/stud088/Simplex/2000.txt
+
+
+mpdallexit
+
